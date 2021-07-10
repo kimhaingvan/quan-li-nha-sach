@@ -5,9 +5,9 @@ import {environment} from "../../environments/environment.prod";
   providedIn: 'root'
 })
 export class ApiAppService {
-  baseURL = "http://127.0.0.1:5000";
+  baseURL = "";
   constructor() {
-    this.baseURL = environment ? "http://127.0.0.1:5000" : "domain.com";
+    this.baseURL = environment ?"domain.com" : "http://127.0.0.1:5000";
   }
 
 }
