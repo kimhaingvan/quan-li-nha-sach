@@ -25,25 +25,9 @@ export class SidebarMenuComponent implements OnInit {
     },
     {
       iconHtml:`<i class="fa fa-2x fa-book" aria-hidden="true"></i>`,
-      itemTitle: "Quản lý sản phẩm",
+      itemTitle: "Quản lý sách",
       routerLink: "book-management"
     },
-    {
-      iconHtml:`<i class="fa fa-2x fa-address-card" aria-hidden="true"></i>`,
-      itemTitle: "Quản lý khách hàng",
-      routerLink: "customer-management"
-    },
-    // {
-    //   iconHtml:`<i class="fa fa-2x fa-user" aria-hidden="true"></i>`,
-    //   itemTitle: "Quản lý nhân viên",
-    //   routerLink: "employee-management"
-    // },
-    // {
-    //   iconHtml:`<i class="fa fa-2x fa-ticket" aria-hidden="true"></i>`,
-    //   itemTitle: "Quản lý mượn trả",
-    //   routerLink: "borrow-ticket-management"
-    //
-    // },
     {
       iconHtml:`<i class="fa fa-2x fa-shopping-cart" aria-hidden="true"></i>`,
       itemTitle: "POS",
@@ -55,24 +39,24 @@ export class SidebarMenuComponent implements OnInit {
       itemTitle: "Quản lý hóa đơn",
       routerLink: "order-management"
     },
-    // {
-    //   iconHtml:`<i class="fa fa-2x fa-truck" aria-hidden="true"></i>`,
-    //   itemTitle: "Quản lý nhà cung cấp",
-    //   routerLink: "supplier-management"
-    //
-    // },
-    // {
-    //   iconHtml:`<i class="fa fa-2x fa fa-calendar" aria-hidden="true"></i>`,
-    //   itemTitle: "Quản lý ca làm",
-    //   routerLink: "schedule-management"
-    //
-    // },
-    // {
-    //   iconHtml:`<i class="fa fa-2x fa-user-circle" aria-hidden="true"></i>`,
-    //   itemTitle: "Quản lý tài khoản",
-    //   routerLink: "account-management"
-    //
-    // },
+    {
+      iconHtml:`<i class="fa fa-2x fa-ticket" aria-hidden="true"></i>`,
+      itemTitle: "Quản lý mượn trả",
+      routerLink: "borrow-ticket-management"
+
+    },
+    {
+      iconHtml:`<i class="fa fa-2x fa-truck" aria-hidden="true"></i>`,
+      itemTitle: "Quản lý nhà cung cấp",
+      routerLink: "supplier-management"
+
+    },
+    {
+      iconHtml:`<i class="fa fa-2x fa-user-circle" aria-hidden="true"></i>`,
+      itemTitle: "Quản lý tài khoản",
+      routerLink: "account-management"
+
+    },
     {
       iconHtml:`<i class="fas fa-tools  fa-2x"></i>`,
       itemTitle: "Thiết lập",
@@ -85,7 +69,8 @@ export class SidebarMenuComponent implements OnInit {
       routerLink: "message-management"
 
     },
-  ];
+
+  ]
   constructor(
     private router: Router,
     private accountService: AccountService,

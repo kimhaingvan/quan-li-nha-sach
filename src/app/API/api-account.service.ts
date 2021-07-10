@@ -31,12 +31,18 @@ export class ApiAccountService {
     return await this.http.post(this.baseURL+"/admin/account-management/search-accounts",req).toPromise();
   }
 
+  async LoginGoogle() {
+    return await this.http.post(this.baseURL+"/gLogin", {}).toPromise();
+  }
   async Login(req) {
     return await this.http.post(this.baseURL+"/admin/account-management/login",req).toPromise();
   }
 
   async CheckToken() {
-    return await this.http.get(this.baseURL+"/update-session-info").toPromise();
+    const req = {
+      access_token: JSON.parse(localStorage.getItem("auth_info"))?.access_token || null
+    };
+    return await this.http.post(this.baseURL+"/update-session-info", req).toPromise();
   }
   async SendResetPasswordEmailCustomer(req) {
     return await this.http.post(this.baseURL + "/send-reset-password-email-customer",req).toPromise();
@@ -60,5 +66,15 @@ export class ApiAccountService {
 
   async CreateAccountAndEmployee(req) {
     return await this.http.post(this.baseURL + "/create-employee-account",req).toPromise();
+  }
+  async getProvinces() {
+    return await this.http.post(this.baseURL+"/get-provinces",{}).toPromise();
+  }
+
+  async getDistricts() {
+    return await this.http.post(this.baseURL+"/get-districts",{}).toPromise();
+  }
+  async getWards() {
+    return await this.http.post(this.baseURL+"/get-wards",{}).toPromise();
   }
 }

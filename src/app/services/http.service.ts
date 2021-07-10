@@ -18,10 +18,11 @@ export class HttpService {
   ) {}
 
   createHeader(token?: string) {
-    const jwt = token || this.accountQuery.getValue()?.auth_info?.accessToken || JSON.parse(localStorage.getItem('auth_info'))?.accessToken;
+    const jwt = token || this.accountQuery.getValue()?.auth_info?.access_token || JSON.parse(localStorage.getItem('auth_info'))?.access_token;
     return new HttpHeaders()
       .set('Authorization', 'Bearer ' + jwt)
-      .set('Content-Type', 'application/json');
+      .set('Content-Type', 'application/json')
+      .set('Access-Control-Allow-Origin', '*');
   }
 
   createDefaultOption(headers?: any) {

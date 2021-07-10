@@ -1,25 +1,29 @@
-import { account } from './../../models/app-models';
 import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { WebSocketService } from 'src/app/services/web-socket.service';
-import * as io from 'socket.io-client';
-import { Message } from 'src/app/models/app-models';
 import { AccountQuery } from 'src/app/states/account-store/account.query';
 import {MessageStore} from "../../states/message-store/message.store";
 import {MessageQuery} from "../../states/message-store/message.query";
 import {MessageService} from "../../states/message-store/message.service";
+import { addDays, formatDistance } from 'date-fns';
+import { StarRatingComponent } from 'ng-starrating';
+import {ApiAccountService} from "../../API/api-account.service";
+
 @Component({
   selector: 'app-book-store',
   templateUrl: './book-store.component.html',
   styleUrls: ['./book-store.component.scss']
 })
 export class BookStoreComponent implements OnInit {
+
+
   @ViewChild('mes',{static: false}) message: ElementRef;
   isDisplayMessage = false;
 
   messages : any[] =[];
   message_list$ = this.messageQuery.messages_list$
-  constructor(private webSocketService: WebSocketService, private accountQuery:AccountQuery, private messageStore: MessageStore, private messageQuery: MessageQuery, private messageService: MessageService) { }
-  chatText = ''
+  auth_info$ = this.accountQuery.auth_info$
+  constructor(private webSocketService: WebSocketService, private apiAccountService: ApiAccountService, private accountQuery:AccountQuery, private messageStore: MessageStore, private messageQuery: MessageQuery, private messageService: MessageService) { }
+  chatText = '';
   async ngOnInit() {
     if(this.accountQuery.getValue().auth_info?.account.role.role_id == 3 && this.accountQuery.getValue().auth_info.account.role.role_name == "customer") {
       let req = {
@@ -38,7 +42,7 @@ export class BookStoreComponent implements OnInit {
 
     await this.messageService.GetMoreMessageAndPushIntoStore({
       page:0,
-      perPage:10,
+      per_page:10,
       conversation_id: this.messageQuery.getValue().active_conversation_id
     }).then(_ => {
       this.messages=this.messageQuery.getValue().messages_list;
@@ -89,5 +93,10 @@ export class BookStoreComponent implements OnInit {
     this.isDisplayMessage = !this.isDisplayMessage;
     this.MessageScrollToBottom();
   }
+
+  handleSubmit() {
+
+  }
+
 }
 

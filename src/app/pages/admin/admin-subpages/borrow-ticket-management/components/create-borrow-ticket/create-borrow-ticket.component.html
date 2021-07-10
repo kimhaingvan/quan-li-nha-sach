@@ -3,10 +3,11 @@
     <div class="box setting-box mt-0 w-75" >
       <div class="setting-header">
         <div class="d-flex justify-content-center align-items-center text-app">
-          <h1 class="font-weight-bold text-app">Phiếu mượn sản phẩm</h1>
+          <h1 class="font-weight-bold text-app">Phiếu mượn sách</h1>
         </div>
       </div>
       <div class="setting-body" style="border-bottom: 1px solid lightgrey">
+        <div class="col-12 text-left font-weight-bold mb-3">Ngày: {{today | date: "dd-MM-yyyy"}}</div>
         <div class="col-12 d-flex flex-column justify-content-center">
           <div class="row app-flex flex-row">
             <div class="col-2 detail-title font-weight-bold text-app">Mã đọc giả: </div>
@@ -14,10 +15,10 @@
               <form class="example-form">
                 <mat-form-field class="example-full-width">
                   <input type="text" placeholder="Mã đọc giả" aria-label="Number" matInput [formControl]="customer_control"
-                    [matAutocomplete]="customerAuto">
+                    [matAutocomplete]="customerAuto" (change)="onCustomerChange()" >
                   <mat-autocomplete autoActiveFirstOption #customerAuto="matAutocomplete">
                     <mat-option *ngFor="let customer of customer_filtered_options | async" [value]="customer">
-                      {{customer | standardizedId}}
+                      {{customer}}
                     </mat-option>
                   </mat-autocomplete>
                 </mat-form-field>
@@ -25,7 +26,7 @@
             </div>
           </div>
 
-          <div class="row" *ngIf="customer_item" style="padding-left:7rem">
+          <div class="row" *ngIf="customer_item" style="padding-left:5.5rem">
             <div class="col-2 app-flex">
               <div class=" h-75" >
                 <img [src]="customer_item?.image ||'assets/images/default-avatar.png'" style="height: 100%; width: 100%; object-fit: cover;"
@@ -66,15 +67,7 @@
                   Email:
                 </div>
                 <div class="col-9">
-                  <input type="text" class="form-control read-only text-app font-weight-bold" disabled placeholder="Nhập địa chỉ email" (ngModelChange)="customer_item.customer_id=$event" name="inputField" [ngModel]="customer_item.email" />
-                </div>
-              </div>
-              <div class="row align-items-center mb-4">
-                <div class="col-3 font-weight-bold">
-                  Chứng minh thư:
-                </div>
-                <div class="col-9">
-                  <input type="text" class="form-control read-only text-app font-weight-bold" disabled placeholder="Nhập địa chỉ email" (ngModelChange)="customer_item.customer_id=$event" name="inputField" [ngModel]="customer_item.identity_id" />
+                  <input  type="text" class="form-control read-only text-app font-weight-bold" disabled placeholder="Nhập địa chỉ email" (ngModelChange)="customer_item.customer_id=$event" name="inputField" [ngModel]="customer_item.email" />
                 </div>
               </div>
             </div>
@@ -84,15 +77,15 @@
           </div>
 
           <div class="row app-flex flex-row">
-            <div class="col-2  detail-title font-weight-bold text-app">Mã sản phẩm </div>
+            <div class="col-2  detail-title font-weight-bold text-app">Mã sách </div>
             <div class="col-10 detail-info">
               <form class="example-form">
                 <mat-form-field class="example-full-width">
-                  <input type="text" placeholder="Mã sản phẩm" aria-label="Number" matInput [formControl]="book_control"
-                    [matAutocomplete]="bookAuto">
-                  <mat-autocomplete autoActiveFirstOption #bookAuto="matAutocomplete">
-                    <mat-option *ngFor="let bookOption of book_filtered_options | async" [value]="bookOption">
-                      {{bookOption | standardizedId}}
+                  <input type="text" placeholder="Mã sách" aria-label="Number" matInput [formControl]="book_control"
+                    [matAutocomplete]="bookAuto" (change)="onBookChange()">
+                  <mat-autocomplete autoActiveFirstOption #bookAuto="matAutocomplete" >
+                    <mat-option  *ngFor="let bookOption of book_filtered_options | async" [value]="bookOption">
+                      {{bookOption}}
                     </mat-option>
                   </mat-autocomplete>
                 </mat-form-field>
@@ -100,8 +93,8 @@
             </div>
           </div>
           <ng-container *ngIf="book_item">
-            <h3 class="text-center text-app font-weight-bold mb-2 mt-4">Thông tin chi tiết sản phẩm</h3>
-            <div class="item-row py-2 my-4 w-75">
+            <h3 class="text-center text-app font-weight-bold mb-2 mt-4">Thông tin chi tiết sách</h3>
+            <div class="item-row py-2 my-4 w-100">
               <div class="row d-flex flex-row">
                 <div class="col align-self-center  font-weight-bold text-app" style="max-width:150px;">
                   {{book_item?.book_id | standardizedId}}</div>
@@ -109,14 +102,14 @@
                   <img [src]="book_item?.image || 'assets/images/default-book.png'"
                     style="height: 80px; width: 60px; object-fit: cover;" alt="" />
                 </div>
-                <div class="col align-self-center">{{book_item?.name || "-"}}</div>
-                <div class="col align-self-center" style="max-width: 150px;">{{book_item?.category?.category_name || "-"}}</div>
+                <div class="col-4 align-self-center">{{book_item?.book_name || "-"}}</div>
+                <div class="col-3 align-self-center" style="max-width: 150px;">{{book_item?.category?.category_name || "-"}}</div>
                 <div class="col align-self-center">
                   {{book_item?.author?.author_name || "-"}}
                 </div>
                 <div class="col align-self-center" style="max-width: 150px;" (click)="AddBookToTicket()">
                   <div class="btn-add px-3 py-2 position-relative">
-                    <i class="fa fa-plus"></i> Thêm sản phẩm
+                    <i class="fa fa-plus"></i> 
                   </div>
                 </div>
               </div>
@@ -124,7 +117,7 @@
           </ng-container>
 
           <ng-container *ngIf="borrowTicket?.books?.length > 0">
-            <h3 class="text-center text-app font-weight-bold mb-2 mt-4">Danh sản phẩm sản phẩm mượn</h3>
+            <h3 class="text-center text-app font-weight-bold mb-2 mt-4">Danh sách sách mượn</h3>
             <div *ngFor="let selected_book of borrowTicket.books; let i = index" [attr.data-index]="i">
               <div class="item-row mt-4 ">
                 <div class="row d-flex flex-row">
@@ -135,7 +128,7 @@
                     <img [src]="selected_book?.image || 'assets/images/default-avatar.png'"
                       style="height: 80px; width: 60px; object-fit: cover;" alt="" />
                   </div>
-                  <div class="col align-self-center">{{selected_book?.name || "-"}}</div>
+                  <div class="col align-self-center">{{selected_book?.book_name || "-"}}</div>
                   <div class="col align-self-center" style="max-width: 150px;">{{selected_book?.category?.category_name || "-"}}</div>
                   <div class="col align-self-center">
                     {{selected_book?.author?.author_name || "-"}}
@@ -154,7 +147,7 @@
 
       <div class="setting-footer flex-end">
         <div class="d-flex align-items-center ml-auto  ">
-          <span *ngIf="borrowTicket?.books?.length" class="mr-4">Số lượng sản phẩm mượn:
+          <span *ngIf="borrowTicket?.books?.length" class="mr-4">Số lượng sách mượn:
             <b>{{borrowTicket.books?.length}}</b>
           </span>
           <div class="btn-outline-app" (click)="CreateBorrowTicket()">
@@ -182,7 +175,7 @@
     <div class="box setting-box mt-0 w-75" >
       <div class="setting-header">
         <div class="d-flex justify-content-center align-items-center text-app">
-          <h1 class="font-weight-bold text-app">Xác nhận phiếu mượn sản phẩm</h1>
+          <h1 class="font-weight-bold text-app">Xác nhận phiếu mượn sách</h1>
         </div>
       </div>
       <div class="setting-body" style="border-bottom: 1px solid lightgrey">
@@ -229,7 +222,7 @@
         </div>
 
         <ng-container *ngIf="confirm_borrow_ticket?.borrow_ticket_details?.length > 0">
-          <h3 class="text-center text-app font-weight-bold mb-2 mt-4">Danh sản phẩm sản phẩm mượn</h3>
+          <h3 class="text-center text-app font-weight-bold mb-2 mt-4">Danh sách sách mượn</h3>
           <div *ngFor="let selected_book of borrowTicket.books; let i = index" [attr.data-index]="i">
             <div class="item-row mt-4 ">
               <div class="row d-flex flex-row">
@@ -240,7 +233,7 @@
                   <img [src]="selected_book?.image || 'assets/images/default-avatar.png'"
                     style="height: 80px; width: 60px; object-fit: cover;" alt="" />
                 </div>
-                <div class="col align-self-center">{{selected_book?.name || "-"}}</div>
+                <div class="col align-self-center">{{selected_book?.book_name || "-"}}</div>
                 <div class="col align-self-center" style="max-width: 150px;">{{selected_book?.category?.category_name || "-"}}</div>
                 <div class="col align-self-center">
                   {{selected_book?.author?.author_name || "-"}}
@@ -254,7 +247,7 @@
 
       <div class="setting-footer flex-end">
         <div class="d-flex align-items-center ml-auto  ">
-          <span *ngIf="borrowTicket?.books?.length" class="mr-4">Số lượng sản phẩm mượn:
+          <span *ngIf="borrowTicket?.books?.length" class="mr-4">Số lượng sách mượn:
             <b>{{borrowTicket.books?.length}}</b>
           </span>
           <div class="btn-outline-app" (click)="DeleteBorrowTicket()" style="width:6rem">

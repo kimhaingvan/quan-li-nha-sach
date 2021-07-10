@@ -6,12 +6,13 @@ import { filter_page } from 'src/app/models/app-models';
 import { PaginationOpt } from 'src/app/shared/page-pagination/page-pagination.component';
 
 export interface AccountState {
-    account_list_view:  GetItemsByPageRsp;
+    account_list_view: GetItemsByPageRsp;
     current_page: number,
     filter_page: filter_page,
-    current_pagination_opt : PaginationOpt;
+    current_pagination_opt: PaginationOpt;
     auth_info: auth_info;
-    detail_account: any
+    detail_account: any;
+    roles: any;
 }
 
 const initState = {
@@ -20,15 +21,16 @@ const initState = {
     current_page : 1,
     filter_page: {
         page: 1,
-          perPage: 20,
+          per_page: 20,
     },
     current_pagination_opt: {
         nextDisabled: false,
         previousDisabled: true,
         hidePerpage: true,
     },
-    detail_account: null
-}
+    detail_account: null,
+    roles: [],
+};
 
 @Injectable({providedIn: 'root'})
 @StoreConfig({name:'account', resettable: true})

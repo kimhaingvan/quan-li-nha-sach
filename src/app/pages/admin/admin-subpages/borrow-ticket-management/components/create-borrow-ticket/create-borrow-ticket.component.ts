@@ -1,12 +1,12 @@
 import { Router, NavigationEnd } from '@angular/router';
 import { UtilService } from 'src/app/services/util.service';
 import { BorrowTicketService } from './../../../../../../states/borrow-ticket-store/borrow-ticket.service';
-import { BookQuery } from '../../../../../../states/product-store/book.query';
+import { BookQuery } from './../../../../../../states/book-store/book.query';
 import { startWith, map, tap } from 'rxjs/operators';
 import { BorrowTicket } from './../../../../../../models/req';
 import { Observable } from 'rxjs';
 import { FormControl } from '@angular/forms';
-import { ProductService } from '../../../../../../states/product-store/product.service';
+import { BookService } from './../../../../../../states/book-store/book.service';
 import { AccountQuery } from './../../../../../../states/account-store/account.query';
 import { AccountStore } from './../../../../../../states/account-store/account.store';
 import { CustomerStore } from './../../../../../../states/customer-store/customer.store';
@@ -20,6 +20,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
   styleUrls: ['./create-borrow-ticket.component.scss']
 })
 export class CreateBorrowTicketComponent implements OnInit, OnDestroy {
+  today = new Date().toDateString();
   all_customers = [];
   customer_control = new FormControl();
   customer_options: string[] = [];
@@ -43,7 +44,7 @@ export class CreateBorrowTicketComponent implements OnInit, OnDestroy {
   mySubscription: any;
   constructor(
     private borrowTicketService: BorrowTicketService,
-    private bookService: ProductService,
+    private bookService: BookService,
     private bookQuery: BookQuery,
     private customerService: CustomerService,
     private customerStore: CustomerStore,
@@ -67,26 +68,26 @@ export class CreateBorrowTicketComponent implements OnInit, OnDestroy {
 
   filter = {
     page : 1,
-    perPage: 1000
+    per_page: 1000
   }
 
   async ngOnInit() {
     this.employee_id = JSON.parse(localStorage.getItem('auth_info')).user_info.employee_id;
 
     await this.customerService.GetCustomers(this.filter);
-    await this.bookService.getProductsByShop(this.filter);
+    await this.bookService.getBooks(this.filter);
 
     this.all_books = this.bookQuery.getValue().book_list_view.items;
     this.all_customers = this.customerQuery.getValue().customer_list_view.items;
 
     this.all_books.forEach(book => {
-      this.book_options.push(book.book_id.toString());
+      this.book_options.push(book.book_id + " - " + book.book_name.toString());
     })
     this.book_filtered_options = this.book_control.valueChanges.pipe(
       startWith(''),
       map(value => this._bookFilter(value)),
       tap(() => {
-        if(parseInt(this.book_control.value)){
+        if((this.book_control.value)){
           this.book_item = this.all_books.find(book => book.book_id == parseInt(this.book_control.value))
         }
       })
@@ -94,7 +95,7 @@ export class CreateBorrowTicketComponent implements OnInit, OnDestroy {
 
 
     this.all_customers.forEach(customer => {
-      this.customer_options.push(customer.customer_id.toString());
+      this.customer_options.push(`${customer.customer_id.toString()} - ${customer.last_name} ${customer.first_name}`);
     })
     this.customer_filtered_options = this.customer_control.valueChanges.pipe(
       startWith(''),
@@ -128,7 +129,7 @@ export class CreateBorrowTicketComponent implements OnInit, OnDestroy {
   AddBookToTicket() {
     const req_book_ids = this.borrowTicket.books.map(book => book.book_id)
     if(req_book_ids.indexOf(this.book_item.book_id) != -1) {
-      return toastr.error("Thêm sản phẩm vào phiếu mượn không thành công", "Mỗi quyển sản phẩm chỉ được mượn với số lượng là 1");
+      return toastr.error("Thêm sách vào phiếu mượn không thành công", "Mỗi quyển sách chỉ được mượn với số lượng là 1");
     }
     this.borrowTicket.books.push(this.book_item);
     this.book_control.setValue("");
@@ -144,15 +145,15 @@ export class CreateBorrowTicketComponent implements OnInit, OnDestroy {
       const req_book_ids = this.borrowTicket.books.map(book => book.book_id)
       let isDuplicateExists = this.util.isDuplicateExists(req_book_ids);
       if(isDuplicateExists) {
-        return toastr.error("Tạo phiếu mượn sản phẩm không thành công", "Mỗi quyển sản phẩm chỉ được mượn với số lượng là 1");
+        return toastr.error("Tạo phiếu mượn sách không thành công", "Mỗi quyển sách chỉ được mượn với số lượng là 1");
       }
 
       if(!this.customer_item) {
-        return toastr.error("Tạo phiếu mượn sản phẩm không thành công", "Vui lòng chọn đọc giả");
+        return toastr.error("Tạo phiếu mượn sách không thành công", "Vui lòng chọn đọc giả");
       }
 
       if(!req_book_ids || !req_book_ids.length) {
-        return toastr.error("Tạo phiếu mượn sản phẩm không thành công", "Vui lòng chọn sản phẩm mượn");
+        return toastr.error("Tạo phiếu mượn sách không thành công", "Vui lòng chọn sách mượn");
       }
       const api_req = {
         customer_id: this.customer_item.customer_id,
@@ -164,9 +165,9 @@ export class CreateBorrowTicketComponent implements OnInit, OnDestroy {
       if(res) {
         this.confirm_borrow_ticket = res;
       }
-      toastr.success("Tạo phiếu mượn sản phẩm thành công");
+      toastr.success("Tạo phiếu mượn sách thành công");
     } catch(e) {
-      toastr.error("Tạo phiếu mượn sản phẩm không thành công", e.msg || e.message)
+      toastr.error("Tạo phiếu mượn sách không thành công", e.msg || e.message)
     }
   }
 
@@ -180,4 +181,48 @@ export class CreateBorrowTicketComponent implements OnInit, OnDestroy {
 
     this.ngOnInit();
   }
+
+  async onBookChange() {
+    const req = {
+      book_id : Number(this.book_control.value),
+      book_name : this.book_control.value,
+    }
+    let res = await this.bookService.searchBooks(req);
+    const books = res.books;
+    this.book_options = [];
+    books.forEach(book => {
+      this.book_options.push(book.book_id + " - " + book.book_name.toString());
+    })
+    this.book_filtered_options = this.book_control.valueChanges.pipe(
+      startWith(''),
+      map(value => this._bookFilter(value)),
+      tap(() => {
+        if(this.book_control.value){
+          this.book_item = this.all_books.find(book => book.book_id == parseInt(this.book_control.value))
+        }
+      })
+    );
+  }
+
+  async onCustomerChange() {
+    const req = {
+      customer_id : Number(this.customer_control.value),
+      customer_name : this.customer_control.value,
+    }
+    let customers = await this.customerService.SearchCustomers(req);
+    this.customer_options = [];
+    customers.forEach(customer => {
+      this.customer_options.push(`${customer.customer_id.toString()} - ${customer.last_name} ${customer.first_name}`);
+    })
+    this.customer_filtered_options = this.customer_control.valueChanges.pipe(
+      startWith(''),
+      map(value => this._customerFilter(value)),
+      tap(() => {
+        if(this.customer_control.value){
+          this.customer_item = this.all_customers.find(cus => cus.customer_id == parseInt(this.customer_control.value))
+        }
+      })
+    );
+  }
+
 }

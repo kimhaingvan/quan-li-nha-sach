@@ -1,6 +1,6 @@
 export class filter_page {
     page: number;
-    perPage: number;
+    per_page: number
 }
 
 
@@ -13,10 +13,10 @@ export class account {
 export class Account {
     account_id: string | number;
     role: any;
-    account_name: string;
+    account_name: string
 }
 export class auth_info {
-    accessToken: string;
+    access_token: string;
     account: any;
     user_info: any;
 }
@@ -24,9 +24,9 @@ export class auth_info {
 export class order_line {
   book_id: string;
   image: string;
-  name: string;
+  book_name: string;
   quantity: number;
-  retailPrice:  number;
+  retail_price:  number;
   new_amount: number;
   total_price:  number;
   discount: number;

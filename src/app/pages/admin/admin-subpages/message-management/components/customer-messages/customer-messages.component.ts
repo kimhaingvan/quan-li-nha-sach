@@ -40,7 +40,7 @@ export class CustomerMessagesComponent implements OnInit, OnDestroy {
       this.messageService.SetActiveConversation(this.messageQuery.getValue().all_conversations[0])
       await this.messageService.GetMoreMessageAndPushIntoStoreAdmin({
         page:0,
-        perPage:10,
+        per_page:10,
         conversation_id: this.messageQuery.getValue().active_conversation.conversation_id
       })
     })
@@ -112,7 +112,7 @@ export class CustomerMessagesComponent implements OnInit, OnDestroy {
     if(!this.messageQuery.getValue().active_conversation.messages || !this.messageQuery.getValue().active_conversation.messages.length) {
       await this.messageService.GetMoreMessageAndPushIntoStoreAdmin({
         page:0,
-        perPage:10,
+        per_page:10,
         conversation_id: this.messageQuery.getValue().active_conversation.conversation_id
       })
     }
@@ -127,7 +127,7 @@ export class CustomerMessagesComponent implements OnInit, OnDestroy {
     try {
       const req = {
         page: active_conversation.current_page - 1,
-        perPage: 10,
+        per_page: 10,
         conversation_id: active_conversation.conversation_id
       }
       await this.messageService.GetMoreMessageAndPushIntoStoreAdmin(req)

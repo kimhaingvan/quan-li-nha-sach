@@ -16,6 +16,8 @@
     {'modules':[{'name':'visualization','version':'1.1','packages':
     ['corechart']}]}">
   </script>
+  <script src="https://www.paypal.com/sdk/js?client-id=ASnLYSsl4sJj1AzxpvH3fuoyHuqypC3E8gLY1-N-RsQma9SWyHtZ4oowDNUIn_5C_mESsXvw43LBQDH0"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@webcomponents/webcomponentsjs@2.4.1/webcomponents-bundle.min.js"></script>
 </head>
 <body class="mat-typography">
   <app-root></app-root>
@@ -23,6 +25,13 @@
   <script src="//www.google.com/jsapi"></script>
   <script>
     google.load('visualization', '1', {packages: ['imagechart']});
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js" integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA==" crossorigin="anonymous"></script>
+  <script type="text/javascript" charset="utf-8">
+    var socket = io();
+    socket.on('connect', function() {
+      socket.emit('my event', {data: 'I\'m connected!'});
+    });
   </script>
 </body>
 </html>

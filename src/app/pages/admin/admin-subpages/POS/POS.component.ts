@@ -1,16 +1,17 @@
 import { CustomerStore } from './../../../../states/customer-store/customer.store';
-import { BookStore } from '../../../../states/product-store/book.store';
-import { ProductService } from '../../../../states/product-store/product.service';
-import { Component, OnInit } from '@angular/core';
+import { BookStore } from './../../../../states/book-store/book.store';
+import { BookService } from './../../../../states/book-store/book.service';
+import {Component, ElementRef, OnInit, ViewChild} from '@angular/core';
 import { CustomerService } from 'src/app/states/customer-store/customer.service';
 import {FormBuilder, FormControl} from '@angular/forms';
 import {Observable} from "rxjs";
 import {map, startWith, tap} from "rxjs/operators";
 import {CustomerQuery} from "../../../../states/customer-store/customer.query";
 import {order_line} from "../../../../models/app-models";
-import {BookQuery} from "../../../../states/product-store/book.query";
+import {BookQuery} from "../../../../states/book-store/book.query";
 import {ApiOrderService} from "../../../../API/api-order.service";
-import {Router} from "@angular/router";
+import {ActivatedRoute, Router} from "@angular/router";
+import { TelegramService } from 'src/app/services/telegram.service';
 
 @Component({
   selector: 'app-POS',
@@ -18,7 +19,8 @@ import {Router} from "@angular/router";
   styleUrls: ['./POS.component.scss']
 })
 export class POSComponent implements OnInit {
-  //Danh sản phẩm các Forms: Gio hàng, khách hàng, hóa đơn, sản phẩm
+  @ViewChild("paypalRef", {static: true}) private paypalRef: ElementRef;
+  //Danh sách các Forms: Gio hàng, khách hàng, hóa đơn, sản phẩm
   order_lines: order_line[] = []
   search_keyword: string;
   books = []
@@ -43,39 +45,44 @@ export class POSComponent implements OnInit {
 
   filter = {
     page : 1,
-    perPage: 1000
+    per_page: 1000
   }
 
   constructor(
-    private bookService: ProductService,
+    private bookService: BookService,
     private bookStore: BookStore,
     private bookQuery: BookQuery,
     private customerService: CustomerService,
     private customerQuery: CustomerQuery,
     private fb: FormBuilder,
     private apiOrderService: ApiOrderService,
-    private router: Router
+    private router: Router,
+  private route: ActivatedRoute,
+    private telegramService: TelegramService,
   ) { }
 
   async ngOnInit() {
+    const internalOrderId =  this.route.snapshot.queryParamMap.get('internalOrderId');
+    const errorCode =  parseInt(this.route.snapshot.queryParamMap.get('errorCode'));
+    if (errorCode && errorCode !== 0) {
+      await this.apiOrderService.DeleteOrder({
+        order_id: internalOrderId
+      }).then(_ => {
+        this.router.navigateByUrl('/admin/pos-management');
+      })
+    }
     await this.customerService.GetCustomers(this.filter);
-    await this.bookService.getProductsByShop(this.filter)
+    await this.bookService.getBooks(this.filter)
     this.books= this.bookQuery.getValue().book_list_view.items
     this.all_customers = this.customerQuery.getValue().customer_list_view.items;
     this.all_customers.forEach(customer => {
-      let customer_option = {
-        customer_id: customer.customer_id,
-        last_name: customer.last_name,
-        first_name: customer.first_name,
-      }
-      this.customer_options.push(customer_option);
+      this.customer_options.push(`${customer.customer_id.toString()} - ${customer.last_name} ${customer.first_name}`);
     })
     this.customer_filtered_options = this.customer_control.valueChanges.pipe(
       startWith(''),
       map(value => this._customerFilter(value)),
       tap(() => {
-
-        if(this.customer_control.value){
+        if(parseInt(this.customer_control.value)){
           this.customer_item = this.all_customers.find(customer => customer.customer_id == parseInt(this.customer_control.value))
         }
       })
@@ -83,12 +90,33 @@ export class POSComponent implements OnInit {
   }
 
   private _customerFilter(value: string): string[] {
-    return this.customer_options.filter(customer =>  customer.first_name.toString().toLowerCase().includes(value)  || customer.last_name.toString().includes(value) || customer.customer_id.toString().toLowerCase().includes(value));
+    return this.customer_options.filter(customer => customer.toLowerCase().indexOf(value) === 0);
   }
 
   ClearCustomer() {
     this.customer_control.setValue("");
     this.customer_item = null;
+  }
+
+  async onCustomerChange() {
+    const req = {
+      customer_id : Number(this.customer_control.value),
+      customer_name : this.customer_control.value,
+    }
+    let customers = await this.customerService.SearchCustomers(req);
+    this.customer_options = [];
+    customers.forEach(customer => {
+      this.customer_options.push(`${customer.customer_id.toString()} - ${customer.last_name} ${customer.first_name}`);
+    })
+    this.customer_filtered_options = this.customer_control.valueChanges.pipe(
+      startWith(''),
+      map(value => this._customerFilter(value)),
+      tap(() => {
+        if(this.customer_control.value){
+          this.customer_item = this.all_customers.find(cus => cus.customer_id == parseInt(this.customer_control.value))
+        }
+      })
+    );
   }
 
   AddToChart(book) {
@@ -110,9 +138,9 @@ export class POSComponent implements OnInit {
         book_id: book.book_id,
         quantity: 1,
         image: book.image,
-        name: book.name,
-        retailPrice: book.retailPrice,
-        total_price: book.retailPrice * (1-book.discount),
+        book_name: book.book_name,
+        retail_price: book.retail_price,
+        total_price: book.retail_price * (1-book.discount),
         new_amount: book.new_amount,
         discount: book.discount
       };
@@ -163,48 +191,50 @@ export class POSComponent implements OnInit {
 
   ChangeQuantity(order_line) {
     order_line.quantity = order_line.quantity < 0 ? Math.abs(order_line.quantity) : order_line.quantity;
-    order_line.total_price = order_line.retailPrice * (1 - order_line.discount) * order_line.quantity;
+    order_line.total_price = order_line.retail_price * (1 - order_line.discount) * order_line.quantity;
     this.SumOrder();
   }
 
   async CreateOrder() {
     try {
       const create_order_req = {
-        customer_id: this.customer_item.customer_id,
+        customer_id: this.customer_item?.customer_id || 1,
         employee_id: JSON.parse(localStorage.getItem('auth_info')).user_info.employee_id,
         order_date: Date.now(),
-        type:'in',
+        type:'offline',
         total: this.order.total,
         note: this.order.note,
         order_detail_list: this.order_lines
-      }
-      await this.apiOrderService.CreateOrder(create_order_req)
-      toastr.success('Thanh toán hóa đơn thành công')
-      window.location.href = 'http://localhost:4200/admin/pos-management'
+      };
+      await this.apiOrderService.CreateOrder(create_order_req).then(async order =>  {
+        await this.telegramService.sendCreateOrder(order)
+        toastr.success('Thanh toán hóa đơn thành công');
+        location.reload();
+      });
 
     } catch (e) {
-      toastr.error('Thanh toán hóa đơn thất bại')
+      toastr.error('Thanh toán hóa đơn thất bại');
     }
   }
 
   SearchBooks() {
       let book_in_store = this.bookQuery.getValue().book_list_view.items;
-      this.books = book_in_store.filter(book =>  book.name.includes(this.search_keyword) || book.book_id == this.search_keyword)
+      this.books = book_in_store.filter(book =>  book.book_name.includes(this.search_keyword) || book.book_id == this.search_keyword)
   }
 
   async CreateOrderByMomo() {
     try {
       const create_order_req = {
-        customer_id: this.customer_item.customer_id,
+        customer_id: this.customer_item.customer_id || 1,
         employee_id: JSON.parse(localStorage.getItem('auth_info')).user_info.employee_id,
         order_date: Date.now(),
-        type:'in',
+        type:'offline',
         total: this.order.total.toFixed(0),
         note: this.order.note,
         order_detail_list: this.order_lines
       }
       let result = await this.apiOrderService.CreateOrderByMoMo(create_order_req)
-      if(result.errorCode == 0) {
+      if (result.errorCode === 0) {
         toastr.success('Thanh toán hóa đơn bằng MOMO thành công')
         window.location.href = result.payUrl
       }

@@ -8,7 +8,7 @@ import { Component, OnInit } from '@angular/core';
 export class CustomerManagementComponent implements OnInit {
   headerItems = [
     {
-      itemName: "Danh sản phẩm",
+      itemName: "Danh sách",
       url: "customer-list"
     },
   ]

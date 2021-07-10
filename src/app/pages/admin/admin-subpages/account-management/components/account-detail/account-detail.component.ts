@@ -19,7 +19,7 @@ import { ChangePasswordModalComponent } from './change-password-modal/change-pas
 export class AccountDetailComponent implements OnInit {
   filter = {
     page : 1,
-    perPage: 1000
+    per_page: 1000
   }
 
   isEditing = false;
@@ -39,7 +39,6 @@ export class AccountDetailComponent implements OnInit {
     updateAccountForm = this.fb.group({
       account_id: [''],
       account_name: [''],
-      identity_id:[''],
       student_code: [''],
       last_name: [''],
       first_name: [''],
@@ -56,8 +55,9 @@ export class AccountDetailComponent implements OnInit {
       account_id: parseInt(this.route.snapshot.params['id'])
     }
     const res = await this.accountService.SearchAccounts(account_id);
-    const detail_account = res.accounts[0];
+    const detail_account = res[0];
     this.accountService.SetDetailAccount(detail_account);
+    console.log(detail_account)
   }
 
   async ngOnChanges() {
@@ -103,7 +103,6 @@ export class AccountDetailComponent implements OnInit {
       'account_name': store_detail_account?.last_name + ' '+store_detail_account?.first_name,
       'email': store_detail_account?.email,
       'address': store_detail_account?.address,
-      'identity_id': store_detail_account?.identity_id,
       'phone': store_detail_account?.phone,
       'gender': store_detail_account?.gender,
       'birth_date':this.datePipe.transform(store_detail_account?.birth_day, 'yyyy-MM-dd'),
@@ -147,10 +146,10 @@ export class AccountDetailComponent implements OnInit {
     try{
       let updated_account = await this.accountService.UpdateAccount(update_req)
       this.accountStore.update({detail_account: updated_account})
-      toastr.success("Cập nhật sản phẩm thành công.")
+      toastr.success("Cập nhật sách thành công.")
       this.router.navigateByUrl('admin/account-management/account-list')
     } catch(e) {
-      toastr.error("Cập nhật sản phẩm thất bại.", e.msg || e.message)
+      toastr.error("Cập nhật sách thất bại.", e.msg || e.message)
     }
   }
 

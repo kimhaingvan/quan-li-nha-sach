@@ -1,12 +1,12 @@
-import { BookStore } from '../../../../../../states/product-store/book.store';
-import { BookQuery } from 'src/app/states/product-store/book.query';
+import { BookStore } from './../../../../../../states/book-store/book.store';
+import { BookQuery } from 'src/app/states/book-store/book.query';
 import { ConfirmDeleteModalComponent } from './confirm-delete-modal/confirm-delete-modal.component';
 import { ModalController } from './../../../../../../core/modal-controller/modal-controller.service';
 import { Router, ActivatedRoute } from '@angular/router';
-import { ApiProductService } from '../../../../../../API/api-product.service';
+import { ApiBookService } from './../../../../../../API/api-book.service';
 import { Component, OnInit, Input, OnChanges, ChangeDetectorRef } from '@angular/core';
 import { FormBuilder } from '@angular/forms';
-import { ProductService } from 'src/app/states/product-store/product.service';
+import { BookService } from 'src/app/states/book-store/book.service';
 import { AddSupplierModalComponent } from '../add-supplier-modal/add-supplier-modal.component';
 import { AddCategoryModalComponent } from '../add-category-modal/add-category-modal.component';
 import { AddAuthorModalComponent } from '../add-author-modal/add-author-modal.component';
@@ -20,7 +20,7 @@ import {HttpClient} from "@angular/common/http";
 export class BookDetailComponent implements OnInit, OnChanges {
   filter = {
     page : 1,
-    perPage: 1000
+    per_page: 1000
   }
 
   isEditing = false;
@@ -32,7 +32,7 @@ export class BookDetailComponent implements OnInit, OnChanges {
 
   constructor(
     private bookQuery: BookQuery,
-    private bookService: ProductService,
+    private bookService: BookService,
     private router: Router,
     private fb: FormBuilder,
     private ref: ChangeDetectorRef,
@@ -43,53 +43,44 @@ export class BookDetailComponent implements OnInit, OnChanges {
   ) { }
 
     updateBookForm = this.fb.group({
-      id: [''],
-      name: [''],
+      book_id: [''],
+      book_name: [''],
       author:[''],
       supplier: [''],
       category: [''],
-      costPrice: [''],
-      retailPrice: [''],
+      page_number: [''],
+      cost_price: [''],
+      retail_price: [''],
       discount: [''],
-      amount: [''],
+      old_amount: [''],
+      new_amount: [''],
       description: [''],
       image: '',
-      size: '',
-      material:'',
-      brandName: '',
-      origin: '',
-      feature: '',
       note: [''],
     });
 
   async ngOnInit() {
     const book_id = {
-      id: parseInt(this.route.snapshot.params['id'])
+      book_id: parseInt(this.route.snapshot.params['id'])
     }
-    const res = await this.bookService.getShopProductById(book_id);
+    const res = await this.bookService.getBookByID(book_id);
     const detail_book = res;
     this.bookService.setDetailBook(detail_book);
     await this.SetupData()
-
   }
 
   async ngOnChanges() {
   }
 
   async SetupData() {
-    await this.bookService.GetCategories({});
-    // await this.bookService.GetAuthors(this.filter);
-    // await this.bookService.GetCategories(this.filter);
-    // await this.bookService.GetSuppliers(this.filter);
+    await this.bookService.GetAuthors(this.filter);
+    await this.bookService.GetSuppliers(this.filter);
   }
 
   async onClickUpdateBtn() {
     if(this.isEditing) {
       let update_book = this.updateBookForm.value;
-      await this.bookService.UpdateBook({
-        ...update_book,
-        categoryId : update_book.category.id
-      })
+      await this.bookService.UpdateBook(update_book)
     } else {
       this.toggleEdit();
       this.setupDataForm();
@@ -119,11 +110,11 @@ export class BookDetailComponent implements OnInit, OnChanges {
     modal.onDismiss().then(delete_book => {
       if(delete_book) {
         try {
-          this.bookService.DeleteBookById(delete_book.id);
+          this.bookService.DeleteBookById(delete_book.book_id)
           this.router.navigateByUrl('admin/book-management/book-list')
-          toastr.success("Bạn đã xóa sản phẩm thành công")
+          toastr.success("Bạn đã xóa sách thành công")
         } catch(e) {
-          toastr.error("Xóa sản phẩm không thành thông", e.msg || e.message)
+          toastr.error("Xóa sách không thành thông", e.msg || e.message)
         }
       }
     });
@@ -132,26 +123,23 @@ export class BookDetailComponent implements OnInit, OnChanges {
   setupDataForm() {
     let store_detail_book = this.bookQuery.getValue().detail_book;
     this.updateBookForm.patchValue({
-      'id': store_detail_book?.id,
-      'name': store_detail_book?.name,
+      'book_id': store_detail_book?.book_id,
+      'book_name': store_detail_book?.book_name,
       'author': store_detail_book?.author,
       'supplier': store_detail_book?.supplier,
       'category': store_detail_book?.category,
-      'size': store_detail_book?.size,
-      'costPrice':  store_detail_book?.costPrice,
-      'retailPrice':store_detail_book?.retailPrice,
+      'page_number': store_detail_book?.page_number,
+      'cost_price':  store_detail_book?.cost_price,
+      'retail_price':store_detail_book?.retail_price,
       'discount':store_detail_book?.discount,
       'description': store_detail_book?.description,
-      'amount': store_detail_book?.amount,
+      'old_amount': store_detail_book?.old_amount,
       'new_amount': store_detail_book?.new_amount,
       'note': store_detail_book?.note,
       'image': store_detail_book?.image,
-      'origin': store_detail_book?.origin,
-      'feature': store_detail_book?.feature,
-      'brandName': store_detail_book?.brandName,
-      'material': store_detail_book?.material,
+
     });
-    console.log(this.updateBookForm.value)
+
   }
 
   OpenAddAuthorModal() {
@@ -188,10 +176,9 @@ export class BookDetailComponent implements OnInit, OnChanges {
       if(category) {
         try {
           await this.bookService.CreateCategory(category);
-          await this.bookService.GetCategories(this.filter);
-          toastr.success("Thêm mới thể loại sản phẩm thành công.")
+          toastr.success("Thêm mới thể loại sách thành công.")
         } catch(e) {
-          toastr.error("Thêm mới thể loại sản phẩm thất bại.", e.msg || e.message)
+          toastr.error("Thêm mới thể loại sách thất bại.", e.msg || e.message)
         }
 
       }
@@ -227,17 +214,17 @@ export class BookDetailComponent implements OnInit, OnChanges {
     let update_book = this.updateBookForm.value;
     let update_req = {
       ...update_book,
-      // category_id: update_book.category.category_id,
-      // supplier_id: update_book.supplier.supplier_id,
-      // author_id: update_book.author.author_id,
+      category_id: update_book.category.category_id,
+      supplier_id: update_book.supplier.supplier_id,
+      author_id: update_book.author.author_id,
     };
     try{
       let updated_book = await this.bookService.UpdateBook(update_req)
       this.bookStore.update({detail_book: updated_book})
-      toastr.success("Cập nhật sản phẩm thành công.")
+      toastr.success("Cập nhật sách thành công.")
       this.router.navigateByUrl('admin/book-management/book-list')
     } catch(e) {
-      toastr.error("Cập nhật sản phẩm thất bại.", e.msg || e.message)
+      toastr.error("Cập nhật sách thất bại.", e.msg || e.message)
     }
   }
 
@@ -249,13 +236,13 @@ export class BookDetailComponent implements OnInit, OnChanges {
     try{
       let fd = new FormData();
       fd.append('image', event.target.files[0], event.target.files[0].name)
-      let res : any = await this.http.post('http://localhost:5000/upload-image', fd).toPromise();
+      let res : any = await this.http.post('http://localhost:5000/admin/book-management/upload-book-image', fd).toPromise();
       this.updateBookForm.patchValue({
         image: res.image
-      });
+      })
     }
-    catch (e) {
-      toastr.error("Cập nhật ảnh thất bại!", e.msg || e.message);
+    catch(e){
+      toastr.error("Cập nhật ảnh thất bại!", e.msg || e.message)
     }
   }
 }

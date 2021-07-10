@@ -14,9 +14,10 @@ import { OrderStore } from 'src/app/states/order-store/order.store';
   styleUrls: ['./order-detail.component.scss']
 })
 export class OrderDetailComponent implements OnInit, OnChanges {
+  total_quantity = 0;
   filter = {
     page : 1,
-    perPage: 1000
+    per_page: 1000
   }
 
   borrow_status: any =  "Hoàn thành"  || "Trả trễ" || "Đang trễ" || "Đang mượn";
@@ -41,8 +42,8 @@ export class OrderDetailComponent implements OnInit, OnChanges {
       supplier: [''],
       category: [''],
       page_number: [''],
-      costPrice: [''],
-      retailPrice: [''],
+      cost_price: [''],
+      retail_price: [''],
       discount: [''],
       old_amount: [''],
       new_amount: [''],
@@ -62,10 +63,12 @@ export class OrderDetailComponent implements OnInit, OnChanges {
       order_id: parseInt(this.route.snapshot.params['id'])
     }
     const res = await this.OrderService.searchOrders(order_id);
-    const detail_order = res.orders[0];
+    const detail_order = res[0];
 
     this.OrderService.setDetailOrder(detail_order);
-
+    detail_order.order_details.forEach(detail => {
+      this.total_quantity += detail.quantity
+    })
     const current_date = new Date().getTime();
     const return_date = new Date(this.OrderQuery.getValue().detail_order.return_date).getTime();
     const appointment_date = new Date(this.OrderQuery.getValue().detail_order.appointment_date).getTime();
@@ -110,9 +113,9 @@ export class OrderDetailComponent implements OnInit, OnChanges {
         try {
           this.OrderService.DeleteOrderById(delete_order.order_id)
           this.router.navigateByUrl('admin/order-management/order-list')
-          toastr.success("Bạn đã hủy phiếu mượn sản phẩm thành công")
+          toastr.success("Bạn đã hủy phiếu mượn sách thành công")
         } catch(e) {
-          toastr.error("Bạn đã hủy phiếu mượn sản phẩm không thành thông", e.msg || e.message)
+          toastr.error("Bạn đã hủy phiếu mượn sách không thành thông", e.msg || e.message)
         }
       }
     });
@@ -127,8 +130,8 @@ export class OrderDetailComponent implements OnInit, OnChanges {
       'supplier': store_detail_order?.supplier,
       'category': store_detail_order?.category,
       'page_number': store_detail_order?.page_number,
-      'costPrice':  store_detail_order?.costPrice,
-      'retailPrice':store_detail_order?.retailPrice,
+      'cost_price':  store_detail_order?.cost_price,
+      'retail_price':store_detail_order?.retail_price,
       'discount':store_detail_order?.discount,
       'description': store_detail_order?.description,
       'old_amount': store_detail_order?.old_amount,
@@ -150,10 +153,10 @@ export class OrderDetailComponent implements OnInit, OnChanges {
     try {
       let updated_order = await this.OrderService.UpdateOrder(update_req)
       this.OrderStore.update({detail_order: updated_order})
-      toastr.success("Cập nhật sản phẩm thành công.")
+      toastr.success("Cập nhật sách thành công.")
       this.router.navigateByUrl('admin/order-management/order-list')
     } catch(e) {
-      toastr.error("Cập nhật sản phẩm thất bại.", e.msg || e.message)
+      toastr.error("Cập nhật sách thất bại.", e.msg || e.message)
     }
   }
 
@@ -171,14 +174,14 @@ export class OrderDetailComponent implements OnInit, OnChanges {
   //         try {
   //           await this.OrderService.FinishOrder(finish_order_id)
   //           this.router.navigateByUrl('admin/order-management/order-list')
-  //           toastr.success("Hoàn thành phiếu mượn sản phẩm thành công");
+  //           toastr.success("Hoàn thành phiếu mượn sách thành công");
   //         } catch(e) {
-  //           toastr.error("Bạn đã hủy phiếu mượn sản phẩm không thành thông", e.msg || e.message)
+  //           toastr.error("Bạn đã hủy phiếu mượn sách không thành thông", e.msg || e.message)
   //         }
   //       }
   //     });
   //   } catch(e) {
-  //     toastr.error("Hoàn thành phiếu mượn sản phẩm không thành công", e.msg || e.message)
+  //     toastr.error("Hoàn thành phiếu mượn sách không thành công", e.msg || e.message)
   //   }
   // }
 

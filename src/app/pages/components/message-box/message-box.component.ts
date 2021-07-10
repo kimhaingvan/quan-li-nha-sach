@@ -32,7 +32,7 @@ export class MessageBoxComponent implements OnInit {
 
     await this.messageService.GetMoreMessageAndPushIntoStore({
       page:0,
-      perPage:10,
+      per_page:10,
       conversation_id: this.messageQuery.getValue().active_conversation_id
     }).then(_ => {
       this.messages=this.messageQuery.getValue().messages_list;
@@ -43,7 +43,7 @@ export class MessageBoxComponent implements OnInit {
 
   ListenMessage(message) {
     let account_id_from_server = message && message['account_id'];
-    let account_id_from_client = this.accountQuery.getValue().auth_info.account.account_id;
+    let account_id_from_client = this.accountQuery.getValue().auth_info?.account.account_id;
     const isReplyMessage = account_id_from_server != account_id_from_client;
     message.type = isReplyMessage ? 'reply' : 'send';
     this.messages.push(message);
@@ -53,13 +53,15 @@ export class MessageBoxComponent implements OnInit {
   }
 
    async GetConversationAndSetActive() {
-    if(this.accountQuery.getValue().auth_info.account.role.role_id == 3 && this.accountQuery.getValue().auth_info.account.role.role_name == "customer") {
+    if(this.accountQuery.getValue().auth_info.account.role.role_id == 3) {
       let req = {
         'customer_account_id': this.accountQuery.getValue().auth_info.account.account_id
       }
       let conversation = await this.messageService.GetConversationByCustomerAccountId(req);
-      this.messageService.SetActiveConversation(conversation)
-      this.messageService.SetActiveConversationId(conversation['conversation_id'])
+      if (conversation) {
+        this.messageService.SetActiveConversation(conversation)
+        this.messageService.SetActiveConversationId(conversation['conversation_id'])
+      }
     }
   }
 

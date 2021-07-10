@@ -8,7 +8,7 @@ import { UserComponent } from './user.component';
 import { PipeModule } from 'src/app/pipes/pipe/pipe.module';
 import { MaterialModule } from 'src/app/shared/material.module';
 import {ShareComponentModule} from "../components/share-component.module";
-
+import {MatInputModule} from '../../shared/mat-input/mat-input.module';
 
 @NgModule({
   imports: [
@@ -17,7 +17,9 @@ import {ShareComponentModule} from "../components/share-component.module";
     PipeModule,
     ReactiveFormsModule,
     MaterialModule,
-    ShareComponentModule
+    ShareComponentModule,
+    MatInputModule,
+
   ],
   declarations: [UserComponent, UserRegisterAccountComponent, UserLoginComponent]
 })

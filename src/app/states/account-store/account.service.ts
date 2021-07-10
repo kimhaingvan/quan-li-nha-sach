@@ -3,10 +3,13 @@ import { Router } from '@angular/router';
 import {  AccountQuery } from './account.query';
 import {  AccountStore } from './account.store';
 import { GetItemsByPageRsp } from '../../models/resp';
-
+import { ApiBookService } from '../../API/api-book.service';
 import { Injectable } from '@angular/core';
 import { NavigationDirection } from 'src/app/shared/page-pagination/page-pagination.component';
+import { ApiAuthorService } from 'src/app/API/api-author.service';
+import { ApiSupplierService } from 'src/app/API/api-supplier.service';
 import { ApiAccountService } from 'src/app/API/api-account.service';
+import {ApiRoleService} from "../../API/api-role.service";
 
 @Injectable({
     providedIn: 'root'
@@ -16,7 +19,8 @@ export class AccountService {
         private accountApiService: ApiAccountService,
         private accountStore: AccountStore,
         private accountQuery: AccountQuery,
-        private router: Router
+        private router: Router,
+        private apiRoleService: ApiRoleService
         ) {
     }
 
@@ -91,18 +95,31 @@ export class AccountService {
         let login_res: auth_info = await this.accountApiService.Login(loginReq);
         this.accountStore.update({
             auth_info: login_res,
-        });
+        })
         localStorage.setItem('auth_info', JSON.stringify(this.accountQuery.getValue().auth_info));
     }
 
     async SessionInfo() {
-      return await this.accountApiService.CheckToken();
+      await this.accountApiService.CheckToken()
+        .then(login_res => {
+          this.accountStore.update({
+            auth_info: login_res,
+          })
+          localStorage.setItem('auth_info', JSON.stringify(this.accountQuery.getValue().auth_info));
+        })
+        .catch(err => {
+          localStorage.removeItem('auth_info');
+        })
+      ;
+
+
     }
+
     Logout() {
         this.accountStore.reset();
         localStorage.removeItem('auth_info')
         this.router.navigateByUrl('/book-store');
-        toastr.warning("Bạn đã đăng xuất khỏi tài khoản !", "Đăng xuất thành công")
+        toastr.success("Bạn đã đăng xuất khỏi tài khoản !", "Đăng xuất thành công")
     }
 
     async SendResetPasswordEmailCustomer(email) {
@@ -123,5 +140,12 @@ export class AccountService {
 
     SetDetailAccount(account) {
         this.accountStore.update({detail_account: account})
+    }
+
+    async getRoles() {
+       let roles = await this.apiRoleService.GetRoles();
+       this.accountStore.update({
+         roles
+       });
     }
 }
